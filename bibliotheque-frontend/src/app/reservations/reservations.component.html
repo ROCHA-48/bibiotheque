@@ -1,0 +1,26 @@
+<div class="page-section animate-in">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <p class="text-muted mb-0" style="font-size: 0.9rem;">Gérez les réservations de la bibliothèque</p>
+    </div>
+  </div>
+
+  <app-reservation-form
+    [books]="books"
+    [users]="users"
+    [reservations]="reservations"
+    (reservationCreated)="onReservationCreated()">
+  </app-reservation-form>
+
+  <hr class="my-4">
+
+  <app-reservation-list
+    [reservations]="reservations"
+    [books]="books"
+    [users]="users"
+    [loading]="loading"
+    [errorMessage]="errorMessage"
+    (reservationCancelled)="onReservationCancelled()"
+    (filterChange)="onFilterChange($event)">
+  </app-reservation-list>
+</div>

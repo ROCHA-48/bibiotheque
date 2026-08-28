@@ -1,29 +1,41 @@
-<h2>User List</h2>
-<table class="table table-success table-striped">
-    <thead>
-        <tr>
-            <th> User ID </th>
-            <th> Name </th>
-            <th> Username </th>
-            <th> Role </th>
-            <th> View History </th>
-            <th> Edit User </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let user of users">
-            <td> {{ user.userId }} </td>
-            <td> {{ user.name }} </td>
-            <td> {{ user.username }} </td>
-            <td> {{ user.role[0].roleName }} </td>
-            <td>        
-                <div *ngIf="user.role[0].roleName === 'User'">
-                    <button (click) = "userDetails(user.userId)" class="btn btn-success"> View </button>
-                </div>
-            </td>
+<div class="page-section animate-in">
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Nom d'utilisateur</th>
+            <th>Rôle</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td><span class="badge" style="background: var(--primary-light); color: var(--primary);">{{ user.userId }}</span></td>
+            <td><strong>{{ user.name }}</strong></td>
+            <td>{{ user.username }}</td>
             <td>
-                <button (click) = "updateUser(user.userId)" class="btn btn-info"> Edit </button> 
+              <span class="badge" [ngClass]="user.role[0].roleName === 'Admin' ? 'badge-admin' : 'badge-user'">
+                {{ user.role[0].roleName }}
+              </span>
             </td>
-        </tr>
-    </tbody>
-</table>
+            <td class="text-end">
+              <button *ngIf="user.role[0].roleName === 'User'" (click)="userDetails(user.userId)" class="btn btn-sm btn-outline-primary me-1" title="Voir l'historique">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button (click)="updateUser(user.userId)" class="btn btn-sm btn-outline-info" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="users?.length === 0" class="text-center py-5 text-muted">
+      <i class="bi bi-people" style="font-size: 2.5rem; opacity: 0.4;"></i>
+      <p class="mt-2 mb-0">Aucun utilisateur trouvé</p>
+    </div>
+  </div>
+</div>

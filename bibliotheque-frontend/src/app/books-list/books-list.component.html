@@ -1,27 +1,56 @@
-<h2>Book List</h2>
-<table class="table table-success table-striped">
-    <thead>
-        <tr>
-            <th> Book ID </th>
-            <th> Name </th>
-            <th> Author </th>
-            <th> Genre </th>
-            <th> Number of copies available </th>
-            <th> Actions </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let book of books">
-            <td> {{ book.bookId }} </td>
-            <td> {{ book.bookName }} </td>
-            <td> {{ book.bookAuthor }} </td>
-            <td> {{ book.bookGenre }} </td>
-            <td> {{ book.noOfCopies }} </td>
+<div class="page-section animate-in">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">📚 Liste des livres</h2>
+      <p class="text-muted mb-0" style="font-size: 0.9rem;">Gérez le catalogue de la bibliothèque</p>
+    </div>
+    <a routerLink="/create-book" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i> Ajouter
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Auteur</th>
+            <th>Genre</th>
+            <th>Exemplaires</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let book of books">
+            <td><span class="badge" style="background: var(--primary-light); color: var(--primary);">{{ book.bookId }}</span></td>
+            <td><strong>{{ book.bookName }}</strong></td>
+            <td>{{ book.bookAuthor }}</td>
+            <td><span class="badge" style="background: #f0fdf4; color: #16a34a;">{{ book.bookGenre }}</span></td>
             <td>
-                <button (click) = "bookDetails(book.bookId)" class="btn btn-success"> View </button>
-                <button (click) = "updateBook(book.bookId)" class="btn btn-info"  style="margin-left: 10px"> Edit </button>
-                <button (click) = "deleteBook(book.bookId)" class="btn btn-danger" style="margin-left: 10px"> Delete </button>                
+              <span class="copies-badge" [class.copies-low]="book.noOfCopies <= 2">
+                {{ book.noOfCopies }}
+              </span>
             </td>
-        </tr>
-    </tbody>
-</table>
+            <td class="text-end">
+              <button (click)="bookDetails(book.bookId)" class="btn btn-sm btn-outline-primary me-1" title="Voir détails">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button (click)="updateBook(book.bookId)" class="btn btn-sm btn-outline-info me-1" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button (click)="deleteBook(book.bookId)" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="books?.length === 0" class="text-center py-5 text-muted">
+      <i class="bi bi-inbox" style="font-size: 2.5rem; opacity: 0.4;"></i>
+      <p class="mt-2 mb-0">Aucun livre trouvé</p>
+    </div>
+  </div>
+</div>

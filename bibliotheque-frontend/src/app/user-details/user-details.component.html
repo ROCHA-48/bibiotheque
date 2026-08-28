@@ -1,22 +1,39 @@
-<h2>Borrow history of {{ user.name }}</h2>
-<table class="table table-info table-striped">
-    <thead>
-        <tr>
-            <th> Book ID </th>
-            <th> Issue Date </th>
-            <th> Return Date </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let borrower of borrow">
-            <td> {{ borrower.bookId }} </td>
-            <td> {{ borrower.issueDate }} </td>
-            <div *ngIf="borrower.returnDate != null">
-                <td> {{ borrower.returnDate }} </td>
-            </div>
-            <div *ngIf="borrower.returnDate === null">
-                <td> Book not returned yet </td>
-            </div>
-        </tr>
-    </tbody>
-</table>
+<div class="page-section animate-in">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">👤 Historique d'emprunt</h2>
+      <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ user.name }}</p>
+    </div>
+    <a routerLink="/users" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Retour
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Livre</th>
+            <th>Date d'emprunt</th>
+            <th>Date de retour</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let borrower of borrow">
+            <td><strong>{{ borrower.bookId }}</strong></td>
+            <td>{{ borrower.issueDate }}</td>
+            <td>
+              <span *ngIf="borrower.returnDate !== null">{{ borrower.returnDate }}</span>
+              <span *ngIf="borrower.returnDate === null" class="badge badge-warning">En cours</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="borrow?.length === 0" class="text-center py-5 text-muted">
+      <i class="bi bi-inbox" style="font-size: 2.5rem; opacity: 0.4;"></i>
+      <p class="mt-2 mb-0">Aucun historique d'emprunt</p>
+    </div>
+  </div>
+</div>

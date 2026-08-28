@@ -1,4 +1,23 @@
-.right-text {
-    margin-left: 1000px;
-    font-size: 17px;
+:host {
+  display: block;
+}
+
+.top-bar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+}
+
+.top-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 0;
+  letter-spacing: -0.02em;
 }

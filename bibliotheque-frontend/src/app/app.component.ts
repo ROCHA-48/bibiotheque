@@ -7,4 +7,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'Library Management System';
+  sidebarCollapsed = false;
+
+  onSidebarCollapsedChange(collapsed: boolean) {
+    this.sidebarCollapsed = collapsed;
+  }
 }

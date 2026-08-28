@@ -1,0 +1,55 @@
+<div class="form-card mx-auto">
+  <div class="form-card-header">
+    <div class="form-card-icon" style="background: rgba(79, 70, 229, 0.1); color: #4f46e5;">
+      <i class="bi bi-calendar-plus"></i>
+    </div>
+    <div>
+      <h3 class="mb-0">Créer une réservation</h3>
+      <small class="text-muted">Réservez un livre pour un adhérent</small>
+    </div>
+  </div>
+
+  <form (ngSubmit)="onSubmit()" autocomplete="off" class="form-card-body">
+    <div class="form-group mb-3">
+      <label class="form-label">Livre</label>
+      <select class="form-control form-select" [(ngModel)]="reservation.bookId" name="bookId">
+        <option [ngValue]="null" disabled>Sélectionnez un livre</option>
+        <option *ngFor="let book of books" [ngValue]="book.bookId">
+          {{ book.bookName }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">Adhérent</label>
+      <select class="form-control form-select" [(ngModel)]="reservation.userId" name="userId">
+        <option [ngValue]="null" disabled>Sélectionnez un adhérent</option>
+        <option *ngFor="let user of users" [ngValue]="user.userId">
+          {{ user.name }}
+        </option>
+      </select>
+    </div>
+
+    <div *ngIf="reservation.userId" class="quota-info">
+      <div *ngIf="!isUserAtQuota(reservation.userId)" class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        {{ getActiveCountForUser(reservation.userId) }} réservation(s) active(s) pour cet adhérent.
+      </div>
+      <div *ngIf="isUserAtQuota(reservation.userId)" class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        Quota de 3 réservations actives atteint.
+      </div>
+    </div>
+
+    <div *ngIf="formError" class="alert alert-danger">
+      <i class="bi bi-exclamation-circle me-1"></i>
+      {{ formError }}
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit" [disabled]="!isFormValid()">
+        <i class="bi bi-calendar-check me-1"></i> Réserver
+      </button>
+    </div>
+  </form>
+</div>

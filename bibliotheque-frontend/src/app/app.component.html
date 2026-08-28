@@ -1,4 +1,16 @@
-<app-header></app-header>
-<div class="container" style="margin-top: 20px;">
-  <router-outlet></router-outlet>
+<div class="app-layout">
+  <app-sidebar (collapsedChange)="onSidebarCollapsedChange($event)" [ngClass]="{ 'sidebar-collapsed': sidebarCollapsed }"></app-sidebar>
+  
+  <main class="main-content" [ngClass]="{ 'main-content-collapsed': sidebarCollapsed }">
+    <app-header></app-header>
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
 </div>
+
+<!-- Modals -->
+<app-login-modal></app-login-modal>
+<app-create-book-modal></app-create-book-modal>
+<app-register-modal></app-register-modal>
+<app-confirm-modal></app-confirm-modal>

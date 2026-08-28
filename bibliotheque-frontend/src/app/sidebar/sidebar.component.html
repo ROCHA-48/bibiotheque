@@ -1,0 +1,90 @@
+<aside class="sidebar" [ngClass]="{ 'collapsed': isCollapsed }">
+  <div class="sidebar-header">
+    <div class="sidebar-brand" *ngIf="!isCollapsed">
+      <i class="bi bi-book-half"></i>
+      <span>Bibliothèque</span>
+    </div>
+    <button class="sidebar-toggle" (click)="toggleSidebar()">
+      <i class="bi" [ngClass]="isCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <!-- Section: Accueil -->
+    <div class="nav-section">
+      <span class="nav-section-title" *ngIf="!isCollapsed">Navigation</span>
+      <a routerLink="/" class="nav-item" [class.active]="isActive('/')" title="Accueil">
+        <i class="bi bi-house-door"></i>
+        <span *ngIf="!isCollapsed">Accueil</span>
+      </a>
+    </div>
+
+    <!-- Section: Admin -->
+    <div class="nav-section" *ngIf="isAdmin()">
+      <span class="nav-section-title" *ngIf="!isCollapsed">Administration</span>
+
+      <a routerLink="/books" class="nav-item" [class.active]="isActive('/books')" title="Livres">
+        <i class="bi bi-book"></i>
+        <span *ngIf="!isCollapsed">Livres</span>
+      </a>
+
+      <a class="nav-item clickable" (click)="openCreateBookModal()" title="Ajouter un livre">
+        <i class="bi bi-plus-circle"></i>
+        <span *ngIf="!isCollapsed">Ajouter un livre</span>
+      </a>
+
+      <a routerLink="/users" class="nav-item" [class.active]="isActive('/users')" title="Utilisateurs">
+        <i class="bi bi-people"></i>
+        <span *ngIf="!isCollapsed">Utilisateurs</span>
+      </a>
+
+      <a class="nav-item clickable" (click)="openRegisterModal()" title="Ajouter un utilisateur">
+        <i class="bi bi-person-plus"></i>
+        <span *ngIf="!isCollapsed">Ajouter un utilisateur</span>
+      </a>
+    </div>
+
+    <!-- Section: User -->
+    <div class="nav-section" *ngIf="isUser()">
+      <span class="nav-section-title" *ngIf="!isCollapsed">Espace membre</span>
+
+      <a routerLink="/borrow-book" class="nav-item" [class.active]="isActive('/borrow-book')" title="Emprunter">
+        <i class="bi bi-box-arrow-down"></i>
+        <span *ngIf="!isCollapsed">Emprunter</span>
+      </a>
+
+      <a routerLink="/return-book" class="nav-item" [class.active]="isActive('/return-book')" title="Retourner">
+        <i class="bi bi-box-arrow-up"></i>
+        <span *ngIf="!isCollapsed">Retourner</span>
+      </a>
+
+      <a routerLink="/reservations" class="nav-item" [class.active]="isActive('/reservations')" title="Réservations">
+        <i class="bi bi-calendar-check"></i>
+        <span *ngIf="!isCollapsed">Réservations</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div *ngIf="isLoggedIn()" class="user-info">
+      <div class="user-avatar">
+        {{ getUserName()?.charAt(0) | uppercase }}
+      </div>
+      <div class="user-details" *ngIf="!isCollapsed">
+        <span class="user-name">{{ getUserName() }}</span>
+        <span class="user-role">{{ isAdmin() ? 'Administrateur' : 'Membre' }}</span>
+      </div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button *ngIf="!isLoggedIn()" class="nav-item login-btn" (click)="openLoginModal()" title="Se connecter">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span *ngIf="!isCollapsed">Se connecter</span>
+      </button>
+      <button *ngIf="isLoggedIn()" class="nav-item logout-btn" (click)="logout()" title="Se déconnecter">
+        <i class="bi bi-box-arrow-right"></i>
+        <span *ngIf="!isCollapsed">Se déconnecter</span>
+      </button>
+    </div>
+  </div>
+</aside>
