@@ -5,22 +5,115 @@
     </div>
   </div>
 
-  <app-reservation-form
-    [books]="books"
-    [users]="users"
-    [reservations]="reservations"
-    (reservationCreated)="onReservationCreated()">
-  </app-reservation-form>
+  <div class="toolbar d-flex flex-wrap gap-2 align-items-center mb-3">
+    <div class="filter-section">
+      <label class="form-label fw-bold">Filtrer par statut :</label>
+      <select class="form-select" style="width: auto; display: inline-block;" #statusSelect (change)="onFilterChange(statusSelect.value)">
+        <option value="TOUS">Tous</option>
+        <option value="EN_ATTENTE">En attente</option>
+        <option value="DISPONIBLE">Disponible</option>
+        <option value="ANNULEE">Annulée</option>
+        <option value="EXPIREE">Expirée</option>
+        <option value="HONOREE">Honorée</option>
+      </select>
+    </div>
+    <div class="ms-auto">
+      <button class="btn btn-primary" type="button" (click)="openCreateModal()">
+        <i class="bi bi-plus-lg me-1"></i> Nouvelle réservation
+      </button>
+    </div>
+  </div>
 
-  <hr class="my-4">
+  <!-- Arrière-plan + masque -->
+  <div class="modal-backdrop" [class.show-backdrop]="createModalOpen" (click)="closeCreateModal()"></div>
 
-  <app-reservation-list
-    [reservations]="reservations"
-    [books]="books"
-    [users]="users"
-    [loading]="loading"
-    [errorMessage]="errorMessage"
-    (reservationCancelled)="onReservationCancelled()"
-    (filterChange)="onFilterChange($event)">
-  </app-reservation-list>
+  <!-- Liste en arrière-plan, masquée quand la modale est ouverte -->
+  <div class="reservation-list-layer" [class.modal-open]="createModalOpen">
+    <app-reservation-list
+      [reservations]="reservations"
+      [books]="books"
+      [users]="users"
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      (reservationCancelled)="onReservationCancelled()"
+    ></app-reservation-list>
+  </div>
+
+  <!-- Modale de création centrée, placée au-dessus du contenu -->
+  <div class="reservation-modal" [class.show-modal]="createModalOpen">
+    <div class="reservation-modal-inner">
+      <div class="modal-header d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h3 class="mb-0">Nouvelle réservation</h3>
+          <small class="text-muted">Réservez un livre pour un adhérent</small>
+        </div>
+        <button class="btn btn-link p-0" type="button" (click)="closeCreateModal()" style="font-size: 1.6rem; color: var(--muted);">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <form (ngSubmit)="onCreateSubmit()" autocomplete="off">
+        <div class="form-group mb-3">
+          <label class="form-label">Livre</label>
+          <input
+            class="form-control"
+            type="text"
+            name="bookSearch"
+            list="bookOptions"
+            [(ngModel)]="bookSearch"
+            (input)="onBookInput()"
+            placeholder="Tapez le nom du livre…">
+          <datalist id="bookOptions">
+            <option *ngFor="let book of books" [value]="book.bookName">
+              {{ book.bookAuthor }} — {{ book.noOfCopies }} exemplaire(s)
+            </option>
+          </datalist>
+          <div *ngIf="bookSearch && draftReservation.bookId == null" class="alert alert-info py-2 mt-2 mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            « {{ bookSearch.trim() }} » n'est pas encore au catalogue : la réservation sera enregistrée
+            et vous serez notifié(e) dès que la bibliothèque acquiert ce livre.
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label">Adhérent</label>
+          <select *ngIf="canChooseAdherent" class="form-control form-select" [(ngModel)]="draftReservation.userId" name="userId">
+            <option [ngValue]="null" disabled>Sélectionnez un adhérent</option>
+            <option *ngFor="let user of users" [ngValue]="user.userId">
+              {{ user.name }}
+            </option>
+          </select>
+          <p *ngIf="!canChooseAdherent" class="text-muted mb-0" style="font-size: 0.85rem;">
+            <i class="bi bi-shield-lock me-1"></i>
+            La réservation sera créée à votre nom (identité issue de votre session).
+          </p>
+        </div>
+
+        <div *ngIf="canChooseAdherent && draftReservation.userId" class="quota-info mb-3">
+          <div *ngIf="!isUserAtQuota(draftReservation.userId)" class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>
+            {{ getActiveCountForUser(draftReservation.userId) }} réservation(s) active(s) pour cet adhérent.
+          </div>
+          <div *ngIf="isUserAtQuota(draftReservation.userId)" class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Quota de 3 réservations actives atteint.
+          </div>
+        </div>
+
+        <div *ngIf="modalError" class="alert alert-danger mb-3">
+          <i class="bi bi-exclamation-circle me-1"></i>
+          {{ modalError }}
+        </div>
+
+        <div class="modal-actions d-flex gap-2 mt-3">
+          <button class="btn btn-outline-secondary" type="button" (click)="closeCreateModal()">
+            Annuler
+          </button>
+          <button class="btn btn-primary" type="submit" [disabled]="!isDraftValid()">
+            <i class="bi bi-calendar-check me-1"></i> Réserver
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

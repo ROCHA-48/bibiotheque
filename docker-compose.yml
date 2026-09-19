@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bibliotheque-db
+    environment:
+      POSTGRES_DB: bibliotheque
+      POSTGRES_USER: bibliotheque
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mysql}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - bibliotheque-net
+    ports:
+      - "5433:5432"          # exposé pour le dev local (psql, DBeaver…)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bibliotheque -d bibliotheque"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./bibliotheque-backend
+    container_name: bibliotheque-backend
+    depends_on:
+      db:
+        condition: service_healthy   # attend que PostgreSQL soit prêt
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: bibliotheque
+      DB_USER: bibliotheque
+      DB_PASSWORD: ${DB_PASSWORD:-mysql}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # 512 Mo max pour le JVM en dev ; ajustez selon votre machine
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75 -XX:+UseContainerSupport"
+      # JWT_SECRET: changez-moi-en-production   <- à définir hors dev
+    ports:
+      - "8080:8080"
+    networks:
+      - bibliotheque-net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  bibliotheque-net:
+    driver: bridge

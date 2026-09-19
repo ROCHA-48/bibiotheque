@@ -3,6 +3,7 @@ package com.ibizabroker.bibliotheque.controller;
 import com.ibizabroker.bibliotheque.dao.BooksRepository;
 import com.ibizabroker.bibliotheque.entity.Books;
 import com.ibizabroker.bibliotheque.exceptions.NotFoundException;
+import com.ibizabroker.bibliotheque.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,12 +21,15 @@ public class BooksController {
     @Autowired
     private BooksRepository booksRepository;
 
+    @Autowired
+    private ReservationService reservationService;
+
     @GetMapping("/books")
     public List<Books> getAllBooks(){
         return booksRepository.findAll();
     }
 
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAnyRole('Admin','BIBLIOTHECAIRE')")
     @GetMapping("/books/{id}")
     public ResponseEntity<Books> getBookById(@PathVariable Integer id) {
         Books book = booksRepository.findById(id).orElseThrow(() -> new NotFoundException("Book with id "+ id +" does not exist."));
@@ -35,7 +39,10 @@ public class BooksController {
     @PreAuthorize("hasRole('Admin')")
     @PostMapping("/books")
     public Books createBook(@RequestBody Books book) {
-        return booksRepository.save(book);
+        Books saved = booksRepository.save(book);
+        // Si le livre arrive avec des exemplaires, les réservataires en attente sont notifiés.
+        reservationService.notifyBookAcquired(saved.getBookId());
+        return saved;
     }
 
     @PreAuthorize("hasRole('Admin')")
@@ -49,6 +56,8 @@ public class BooksController {
         book.setNoOfCopies(bookDetails.getNoOfCopies());
 
         Books updatedBook = booksRepository.save(book);
+        // Acquisition d'exemplaires : les réservations EN_ATTENTE passent à DISPONIBLE.
+        reservationService.notifyBookAcquired(updatedBook.getBookId());
         return ResponseEntity.ok(updatedBook);
     }
 

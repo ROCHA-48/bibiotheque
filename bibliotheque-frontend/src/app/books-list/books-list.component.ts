@@ -50,6 +50,18 @@ export class BooksListComponent implements OnInit {
   }
 
   bookDetails(bookId: number) {
-    this.router.navigate(['book-details', bookId]);
+    // Ouvre le détail du livre dans une modale, sans quitter la liste
+    const book = this.books.find(b => b.bookId === bookId);
+    if (book) {
+      this.modalService.openBookDetailsModal(book);
+    }
+  }
+
+  openBorrowForBook(bookId: number) {
+    this.router.navigate(['borrow-book']);
+  }
+
+  openReservationForBook(bookId: number) {
+    this.router.navigate(['reservations']);
   }
 }

@@ -1,4 +1,11 @@
-<div class="form-card mx-auto">
+<div class="text-center mb-3">
+  <button class="btn btn-primary" type="button" (click)="toggleForm()">
+    <i class="bi" [ngClass]="showForm ? 'bi-x-lg me-1' : 'bi-plus-lg me-1'"></i>
+    {{ showForm ? 'Annuler' : 'Nouvelle réservation' }}
+  </button>
+</div>
+
+<div class="form-card mx-auto" *ngIf="showForm">
   <div class="form-card-header">
     <div class="form-card-icon" style="background: rgba(79, 70, 229, 0.1); color: #4f46e5;">
       <i class="bi bi-calendar-plus"></i>
@@ -12,25 +19,41 @@
   <form (ngSubmit)="onSubmit()" autocomplete="off" class="form-card-body">
     <div class="form-group mb-3">
       <label class="form-label">Livre</label>
-      <select class="form-control form-select" [(ngModel)]="reservation.bookId" name="bookId">
-        <option [ngValue]="null" disabled>Sélectionnez un livre</option>
-        <option *ngFor="let book of books" [ngValue]="book.bookId">
-          {{ book.bookName }}
+      <input
+        class="form-control"
+        type="text"
+        name="bookSearch"
+        list="bookOptions"
+        [(ngModel)]="bookSearch"
+        (input)="onBookInput()"
+        placeholder="Tapez le nom du livre…">
+      <datalist id="bookOptions">
+        <option *ngFor="let book of books" [value]="book.bookName">
+          {{ book.bookAuthor }} — {{ book.noOfCopies }} exemplaire(s)
         </option>
-      </select>
+      </datalist>
+      <div *ngIf="bookSearch && reservation.bookId == null" class="alert alert-info py-2 mt-2 mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        « {{ bookSearch.trim() }} » n'est pas encore au catalogue : la réservation sera enregistrée
+        et vous serez notifié(e) dès que la bibliothèque acquiert ce livre.
+      </div>
     </div>
 
     <div class="form-group mb-3">
       <label class="form-label">Adhérent</label>
-      <select class="form-control form-select" [(ngModel)]="reservation.userId" name="userId">
+      <select *ngIf="canChooseAdherent" class="form-control form-select" [(ngModel)]="reservation.userId" name="userId">
         <option [ngValue]="null" disabled>Sélectionnez un adhérent</option>
         <option *ngFor="let user of users" [ngValue]="user.userId">
           {{ user.name }}
         </option>
       </select>
+      <p *ngIf="!canChooseAdherent" class="text-muted mb-0" style="font-size: 0.85rem;">
+        <i class="bi bi-shield-lock me-1"></i>
+        La réservation sera créée à votre nom (identité issue de votre session).
+      </p>
     </div>
 
-    <div *ngIf="reservation.userId" class="quota-info">
+    <div *ngIf="canChooseAdherent && reservation.userId" class="quota-info">
       <div *ngIf="!isUserAtQuota(reservation.userId)" class="alert alert-info">
         <i class="bi bi-info-circle me-1"></i>
         {{ getActiveCountForUser(reservation.userId) }} réservation(s) active(s) pour cet adhérent.

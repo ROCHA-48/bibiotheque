@@ -1,7 +1,8 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Users } from '../_model/users';
 import { UserAuthService } from './user-auth.service';
 
@@ -36,8 +37,6 @@ export class UsersService {
           if (userRoles[i].roleName === allowedRoles[j]) {
             isMatch = true;
             return isMatch;
-          } else {
-            return isMatch;
           }
         }
       }
@@ -60,6 +59,22 @@ export class UsersService {
 
   updateUser(userId: number, user: Users): Observable<Object> {
     return this.httpClient.put(`${this.baseURL}/${userId}`, user);
+  }
+
+  deleteUser(userId: number): Observable<Object> {
+    return this.httpClient.delete(`${this.baseURL}/${userId}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'Une erreur est survenue.';
+    if (error.error && error.error.message) {
+      errorMessage = error.error.message;
+    } else if (error.status === 0) {
+      errorMessage = 'Le serveur est injoignable.';
+    }
+    return throwError(errorMessage);
   }
 
 }

@@ -31,12 +31,17 @@ export class UserAuthService {
     return JSON.parse(localStorage.getItem('userId')!);
   }
 
-  public setName(userId: number) {
-    localStorage.setItem('name', JSON.stringify(userId));
+  public setName(name: string) {
+    localStorage.setItem('name', JSON.stringify(name));
   }
 
-  public getName() {
-    return JSON.parse(localStorage.getItem('name')!);
+  public getName(): string | null {
+    try {
+      const value = JSON.parse(localStorage.getItem('name')!);
+      return typeof value === 'string' ? value : null;
+    } catch {
+      return null;
+    }
   }
 
   public clear() {

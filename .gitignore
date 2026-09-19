@@ -1,2 +1,6 @@
 # Réglages locaux des outils
 .claude/
+
+# IDE / configuration locale
+.idea/
+.agents/

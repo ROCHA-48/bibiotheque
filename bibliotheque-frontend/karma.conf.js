@@ -1,6 +1,4 @@
-// Karma configuration file, see link for more information
-// https://karma-runner.github.io/1.0/config/configuration-file.html
-
+// Karma configuration — tolérant aux environnements lents (CI / conteneurs)
 module.exports = function (config) {
   config.set({
     basePath: '',
@@ -12,33 +10,33 @@ module.exports = function (config) {
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
+    // Launcher Headless sans sandbox (obligatoire dans conteneurs/CI) avec délais élargis
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-dev-shm-usage']
+      }
+    },
     client: {
-      jasmine: {
-        // you can add configuration options for Jasmine here
-        // the possible options are listed at https://jasmine.github.io/api/edge/Configuration.html
-        // for example, you can disable the random execution with `random: false`
-        // or set a specific seed with `seed: 4321`
-      },
-      clearContext: false // leave Jasmine Spec Runner output visible in browser
+      jasmine: {},
+      clearContext: false // laisser Jasmine visible dans la console
     },
-    jasmineHtmlReporter: {
-      suppressAll: true // removes the duplicated traces
+    jasmineNodeOpts: {
+      showColors: true,
+      defaultTimeoutInterval: 30000,
+      print: function () {} // suppression du bruit de console côté navigateur
     },
-    coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/bibliotheque-frontend'),
-      subdir: '.',
-      reporters: [
-        { type: 'html' },
-        { type: 'text-summary' }
-      ]
-    },
-    reporters: ['progress', 'kjhtml'],
+    // Clé anti-déconnexion : Chrome Headless est tué par défaut après ~10s de silence
+    browserDisconnectTimeout: 120000,
+    browserNoActivityTimeout: 240000,
+    captureTimeout: 180000,
+    restartOnFileChange: true,
+    reporters: ['progress'],
     port: 9876,
     colors: true,
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_WARN,
     autoWatch: true,
-    browsers: ['Chrome'],
-    singleRun: false,
-    restartOnFileChange: true
+    browsers: ['ChromeHeadlessNoSandbox'],
+    singleRun: false
   });
 };

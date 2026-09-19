@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { Users } from '../_model/users';
 import { UsersService } from '../_service/users.service';
 import { ModalService } from '../_service/modal.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-register-modal',
@@ -12,11 +13,13 @@ import { ModalService } from '../_service/modal.service';
 export class RegisterModalComponent implements OnInit, OnDestroy {
   isOpen = false;
   user: Users = new Users();
+  selectedRoleName = 'User';
   private sub!: Subscription;
 
   constructor(
     private usersService: UsersService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -24,6 +27,7 @@ export class RegisterModalComponent implements OnInit, OnDestroy {
       this.isOpen = isOpen;
       if (isOpen) {
         this.user = new Users();
+        this.selectedRoleName = 'User';
       }
     });
   }
@@ -37,13 +41,17 @@ export class RegisterModalComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    // Construit le rôle à partir de la sélection (évite user.role undefined)
+    this.user.role = [{ roleName: this.selectedRoleName }];
     this.usersService.createUser(this.user).subscribe(
       (data) => {
-        console.log(data);
+        this.toastService.success('Utilisateur créé avec succès !');
         this.close();
         window.location.reload();
       },
-      (error) => console.log(error)
+      (error) => {
+        this.toastService.error('Erreur lors de la création de l\'utilisateur.');
+      }
     );
   }
 

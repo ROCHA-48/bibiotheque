@@ -1,0 +1,196 @@
+<div class="dashboard-container">
+  <div class="container-fluid">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2 class="dashboard-title">
+          <i class="bi bi-speedometer2 me-2"></i>
+          Tableau de bord administrateur
+        </h2>
+        <p class="text-muted">Vue d'ensemble de votre bibliothèque</p>
+      </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card stat-card-primary">
+          <div class="stat-icon">
+            <i class="bi bi-book"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats.totalBooks || 0 }}</h3>
+            <p class="stat-label">Livres</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card stat-card-success">
+          <div class="stat-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats.totalUsers || 0 }}</h3>
+            <p class="stat-label">Utilisateurs</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card stat-card-warning">
+          <div class="stat-icon">
+            <i class="bi bi-arrow-left-right"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats.activeBorrows || 0 }}</h3>
+            <p class="stat-label">Emprunts en cours</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card stat-card-info">
+          <div class="stat-icon">
+            <i class="bi bi-calendar-check"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats.pendingReservations || 0 }}</h3>
+            <p class="stat-label">Réservations en attente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="row g-4 mb-5">
+      <!-- Emprunts par mois -->
+      <div class="col-lg-8">
+        <div class="chart-card">
+          <h5 class="chart-title">
+            <i class="bi bi-bar-chart me-2"></i>
+            Emprunts par mois
+          </h5>
+          <div class="chart-container" style="height: 300px;">
+            <canvas baseChart
+              [data]="borrowsByMonthChartData"
+              [type]="'bar'"
+              [options]="barChartOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Répartition des réservations -->
+      <div class="col-lg-4">
+        <div class="chart-card">
+          <h5 class="chart-title">
+            <i class="bi bi-pie-chart me-2"></i>
+            Réservations par statut
+          </h5>
+          <div class="chart-container" style="height: 300px;">
+            <canvas baseChart
+              [data]="reservationStatusChartData"
+              [type]="'doughnut'"
+              [options]="doughnutChartOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deuxième ligne de graphiques -->
+    <div class="row g-4 mb-5">
+      <!-- Livres par genre -->
+      <div class="col-lg-6">
+        <div class="chart-card">
+          <h5 class="chart-title">
+            <i class="bi bi-book me-2"></i>
+            Livres par genre
+          </h5>
+          <div class="chart-container" style="height: 300px;">
+            <canvas baseChart
+              [data]="booksByGenreChartData"
+              [type]="'pie'"
+              [options]="pieChartOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiques détaillées -->
+      <div class="col-lg-6">
+        <div class="detail-card">
+          <h5 class="detail-title">
+            <i class="bi bi-graph-up me-2"></i>
+            Résumé détaillé
+          </h5>
+          <div class="detail-content">
+            <div class="detail-item">
+              <span class="detail-label">Emprunts totaux:</span>
+              <span class="detail-value">{{ stats.totalBorrows || 0 }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Réservations disponibles:</span>
+              <span class="detail-value text-success">{{ stats.availableReservations || 0 }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Réservations honorées:</span>
+              <span class="detail-value text-primary">{{ stats.honoredReservations || 0 }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Taux d'utilisation:</span>
+              <span class="detail-value">
+                {{ stats.totalBooks ? ((stats.totalBorrows / stats.totalBooks) * 100).toFixed(1) : 0 }}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activité récente -->
+    <div class="row">
+      <div class="col-12">
+        <div class="activity-card">
+          <h5 class="activity-title">
+            <i class="bi bi-clock-history me-2"></i>
+            Activité récente
+          </h5>
+          
+          <div class="row" *ngIf="recentActivity.recentBorrows?.length || recentActivity.recentReservations?.length">
+            <div class="col-md-6" *ngIf="recentActivity.recentBorrows?.length">
+              <h6 class="activity-subtitle">Derniers emprunts</h6>
+              <ul class="activity-list">
+                <li *ngFor="let borrow of recentActivity.recentBorrows" class="activity-item">
+                  <span class="activity-badge badge bg-warning">Emprunt</span>
+                  <span class="activity-text">Utilisateur #{{ borrow.userId }} - Livre #{{ borrow.bookId }}</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div class="col-md-6" *ngIf="recentActivity.recentReservations?.length">
+              <h6 class="activity-subtitle">Dernières réservations</h6>
+              <ul class="activity-list">
+                <li *ngFor="let reservation of recentActivity.recentReservations" class="activity-item">
+                  <span class="activity-badge badge bg-info">Réservation</span>
+                  <span class="activity-text">Utilisateur #{{ reservation.userId }} - Livre #{{ reservation.bookId }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div *ngIf="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+          </div>
+
+          <div *ngIf="!loading && !recentActivity.recentBorrows?.length && !recentActivity.recentReservations?.length" class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-1"></i>
+            <p>Aucune activité récente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

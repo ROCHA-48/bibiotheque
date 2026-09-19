@@ -20,6 +20,15 @@ public class Reservation {
     Integer bookId;
     Integer userId;
 
+    /**
+     * Titre saisi pour un livre absent du catalogue : le backend crée alors
+     * automatiquement le livre (0 exemplaire) et la réservation passe à
+     * DISPONIBLE dès l'acquisition. Non persisté : le livre créé est
+     * référencé par bookId.
+     */
+    @Transient
+    String newBookTitle;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "statut")
     ReservationStatus status;

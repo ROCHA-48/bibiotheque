@@ -1,4 +1,8 @@
 <div class="page-section animate-in">
+  <div *ngIf="deleteError" class="alert alert-danger">
+    <i class="bi bi-exclamation-circle me-1"></i>
+    {{ deleteError }}
+  </div>
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0">
@@ -17,16 +21,19 @@
             <td><strong>{{ user.name }}</strong></td>
             <td>{{ user.username }}</td>
             <td>
-              <span class="badge" [ngClass]="user.role[0].roleName === 'Admin' ? 'badge-admin' : 'badge-user'">
-                {{ user.role[0].roleName }}
+              <span class="badge" [ngClass]="getRoleName(user) === 'Admin' ? 'badge-admin' : 'badge-user'">
+                {{ getRoleName(user) }}
               </span>
             </td>
             <td class="text-end">
-              <button *ngIf="user.role[0].roleName === 'User'" (click)="userDetails(user.userId)" class="btn btn-sm btn-outline-primary me-1" title="Voir l'historique">
+              <button *ngIf="getRoleName(user) === 'User'" (click)="userDetails(user.userId)" class="btn btn-sm btn-outline-primary me-1" title="Voir l'historique">
                 <i class="bi bi-eye"></i>
               </button>
-              <button (click)="updateUser(user.userId)" class="btn btn-sm btn-outline-info" title="Modifier">
+              <button (click)="updateUser(user.userId)" class="btn btn-sm btn-outline-info me-1" title="Modifier">
                 <i class="bi bi-pencil"></i>
+              </button>
+              <button *ngIf="canDelete(user)" (click)="deleteUser(user)" class="btn btn-sm btn-outline-danger me-1" title="Supprimer">
+                <i class="bi bi-trash"></i>
               </button>
             </td>
           </tr>

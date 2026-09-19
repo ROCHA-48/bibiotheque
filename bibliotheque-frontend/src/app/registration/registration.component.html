@@ -28,8 +28,9 @@
 
       <div class="form-group mb-3">
         <label class="form-label">Rôle</label>
-        <select class="form-control form-select" id="role" [(ngModel)]="user.role[0].roleName" name="role">
-          <option value="User">Utilisateur</option>
+        <select class="form-control form-select" id="role" [(ngModel)]="selectedRoleName" name="role">
+          <option value="User">Utilisateur (ADHERENT)</option>
+          <option value="BIBLIOTHECAIRE">Bibliothécaire</option>
           <option value="Admin">Administrateur</option>
         </select>
       </div>

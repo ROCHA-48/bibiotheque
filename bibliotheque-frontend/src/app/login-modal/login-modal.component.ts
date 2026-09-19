@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { UserAuthService } from '../_service/user-auth.service';
 import { UsersService } from '../_service/users.service';
 import { ModalService } from '../_service/modal.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-login-modal',
@@ -19,7 +20,8 @@ export class LoginModalComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private userAuthService: UserAuthService,
     private router: Router,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -45,6 +47,7 @@ export class LoginModalComponent implements OnInit, OnDestroy {
         this.userAuthService.setName(response.user.name);
 
         const role = response.user.role[0].roleName;
+        this.toastService.success('Connexion réussie ! Bienvenue ' + response.user.name);
         this.close();
         if (role === 'Admin') {
           this.router.navigate(['/books']);
@@ -53,7 +56,7 @@ export class LoginModalComponent implements OnInit, OnDestroy {
         }
       },
       (error) => {
-        console.log(error);
+        this.toastService.error('Identifiants incorrects. Veuillez réessayer.');
       }
     );
   }

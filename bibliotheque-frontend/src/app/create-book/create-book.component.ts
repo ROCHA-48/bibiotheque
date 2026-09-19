@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Books } from '../_model/books';
 import { BooksService } from '../_service/books.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-create-book',
@@ -12,17 +13,21 @@ export class CreateBookComponent implements OnInit {
 
   book: Books = new Books();
   constructor(private booksService: BooksService,
-    private router: Router) { }
+    private router: Router,
+    private toastService: ToastService
+  ) { }
 
   ngOnInit(): void {
   }
 
   saveBook() {
     this.booksService.createBook(this.book).subscribe(data => {
-      console.log(data);
+      this.toastService.success('Livre créé avec succès !');
       this.goToBooksList();
     },
-    error => console.log(error));
+    error => {
+      this.toastService.error('Erreur lors de la création du livre.');
+    });
   }
 
   goToBooksList() {

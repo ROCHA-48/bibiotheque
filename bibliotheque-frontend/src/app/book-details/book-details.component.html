@@ -1,39 +1,126 @@
 <div class="page-section animate-in">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h2 class="mb-1">📖 Historique d'emprunt</h2>
-      <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ book.bookName }}</p>
+      <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ book?.bookName || 'Chargement...' }}</p>
     </div>
     <a routerLink="/books" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left me-1"></i> Retour
     </a>
   </div>
 
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Utilisateur</th>
-            <th>Date d'emprunt</th>
-            <th>Date de retour</th>
-          </tr>
-        </thead>
+  <!-- Informations du livre -->
+  <div class="card mb-4" *ngIf="book">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-3">
+        <div class="book-cover me-3">
+          <i class="bi bi-book"></i>
+        </div>
+        <div>
+          <h3 class="mb-1">{{ book.bookName }}</h3>
+          <span class="badge bg-info text-dark me-1" *ngIf="book.bookGenre">{{ book.bookGenre }}</span>
+          <span class="copies-badge ms-1" [class.copies-low]="book.noOfCopies <= 2">
+            {{ book.noOfCopies }} exemplaire{{ book.noOfCopies > 1 ? 's' : '' }} disponible{{ book.noOfCopies > 1 ? 's' : '' }}
+          </span>
+        </div>
+      </div>
+
+      <table class="table table-sm mb-0 details-table">
         <tbody>
-          <tr *ngFor="let borrower of borrow">
-            <td><strong>{{ borrower.userId }}</strong></td>
-            <td>{{ borrower.issueDate }}</td>
+          <tr>
+            <th class="w-25"><i class="bi bi-person me-2 text-muted"></i>Auteur</th>
+            <td>{{ book.bookAuthor || '—' }}</td>
+          </tr>
+          <tr>
+            <th><i class="bi bi-tag me-2 text-muted"></i>Genre</th>
+            <td>{{ book.bookGenre || '—' }}</td>
+          </tr>
+          <tr>
+            <th><i class="bi bi-box me-2 text-muted"></i>Exemplaires</th>
             <td>
-              <span *ngIf="borrower.returnDate !== null">{{ borrower.returnDate }}</span>
-              <span *ngIf="borrower.returnDate === null" class="badge badge-warning">En cours</span>
+              <span class="copies-badge" [class.copies-low]="book.noOfCopies <= 2">
+                {{ book.noOfCopies }}
+              </span>
+              <span class="text-muted ms-2" *ngIf="book.noOfCopies <= 0">
+                indisponible — réservez pour être notifié du retour
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th><i class="bi bi-arrow-left-right me-2 text-muted"></i>Emprunts en cours</th>
+            <td>
+              <span class="badge" style="background: var(--primary-light); color: var(--primary);">
+                {{ activeBorrowsCount }}
+              </span>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div *ngIf="borrow?.length === 0" class="text-center py-5 text-muted">
+  </div>
+
+  <!-- Actions -->
+  <div class="d-flex gap-2 flex-wrap mb-4" *ngIf="book">
+    <button
+      class="btn btn-success"
+      [disabled]="book.noOfCopies <= 0"
+      (click)="openBorrowBook()"
+      title="Emprunter">
+      <i class="bi bi-box-arrow-down me-1"></i> Emprunter
+    </button>
+    <button
+      class="btn btn-outline-warning"
+      [disabled]="book.noOfCopies > 0"
+      (click)="openReservation()"
+      title="Réserver">
+      <i class="bi bi-calendar-plus me-1"></i> Réserver
+    </button>
+  </div>
+
+  <!-- Historique des emprunts -->
+  <div class="card" *ngIf="book">
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Historique des emprunts</h4>
+      <span class="text-muted" style="font-size: 0.85rem;">{{ borrowHistory.length }} entrée{{ borrowHistory.length > 1 ? 's' : '' }}</span>
+    </div>
+
+    <div class="table-responsive" *ngIf="borrowHistory.length > 0">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th (click)="toggleSort('borrowerName')" style="cursor: pointer;">
+              Emprunteur {{ getSortIcon('borrowerName') }}
+            </th>
+            <th (click)="toggleSort('issueDate')" style="cursor: pointer;">
+              Emprunté le {{ getSortIcon('issueDate') }}
+            </th>
+            <th (click)="toggleSort('dueDate')" style="cursor: pointer;">
+              À rendre le {{ getSortIcon('dueDate') }}
+            </th>
+            <th (click)="toggleSort('returnDate')" style="cursor: pointer;">
+              Retour {{ getSortIcon('returnDate') }}
+            </th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of sortedHistory">
+            <td><strong>{{ entry.borrowerName }}</strong></td>
+            <td>{{ formatDate(entry.issueDate) }}</td>
+            <td [class.text-danger]="isOverdue(entry)">{{ formatDate(entry.dueDate) }}</td>
+            <td>{{ formatDate(entry.returnDate) }}</td>
+            <td>
+              <span *ngIf="entry.returnDate" class="badge bg-success">Retourné</span>
+              <span *ngIf="!entry.returnDate && isOverdue(entry)" class="badge bg-danger">En retard</span>
+              <span *ngIf="!entry.returnDate && !isOverdue(entry)" class="badge bg-warning text-dark">En cours</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="borrowHistory.length === 0" class="text-center py-5 text-muted">
       <i class="bi bi-inbox" style="font-size: 2.5rem; opacity: 0.4;"></i>
-      <p class="mt-2 mb-0">Aucun historique d'emprunt</p>
+      <p class="mt-2 mb-0">Ce livre n'a jamais été emprunté</p>
     </div>
   </div>
 </div>

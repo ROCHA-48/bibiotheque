@@ -25,6 +25,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
+    private JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+    @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
     @Autowired
@@ -40,11 +43,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors();
         httpSecurity.csrf().disable()
-                .authorizeRequests().antMatchers("/authenticate", "/borrow/**", "/admin/books/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v2/api-docs/**").permitAll()
+                .authorizeRequests().antMatchers("/authenticate", "/borrow/**", "/admin/books", "/admin/books/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v2/api-docs/**").permitAll()
                 .antMatchers(HttpHeaders.ALLOW).permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         ;

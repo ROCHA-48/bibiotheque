@@ -24,7 +24,7 @@ export class SidebarComponent implements OnInit {
 
   // Méthode getter pour obtenir le nom de l'utilisateur
   getUserName(): string {
-    return this.userAuthService.getName();
+    return this.userAuthService.getName() || '';
   }
 
   toggleSidebar() {
@@ -41,7 +41,11 @@ export class SidebarComponent implements OnInit {
   }
 
   isUser() {
-    return this.userService.roleMatch(['User']);
+    return this.userService.roleMatch(['User', 'ADHERENT']);
+  }
+
+  isBibliothecaire() {
+    return this.userService.roleMatch(['BIBLIOTHECAIRE']);
   }
 
   openLoginModal() {

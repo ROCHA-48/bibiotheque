@@ -47,3 +47,13 @@ INSERT INTO books (book_name, book_author, book_genre, no_of_copies) VALUES
 
 -- Réinitialiser la séquence des livres
 SELECT setval('books_book_id_seq', (SELECT MAX(book_id) FROM books));
+
+-- Insérer des réservations de démonstration (1 par adhérent, sur des livres à 0 exemplaire)
+-- Prérequis du brief : chaque adhérent doit avoir au moins une réservation à son nom.
+INSERT INTO reservation (reservation_id, book_id, user_id, statut, date_reservation, date_expiration)
+VALUES
+  (1, 1, 4, 'EN_ATTENTE', NOW(), NOW() + INTERVAL '7 days'),   -- adherent1 attend 'Le Petit Prince'
+  (2, 3, 5, 'EN_ATTENTE', NOW(), NOW() + INTERVAL '7 days');   -- adherent2 attend 'Les Misérables'
+
+-- Réinitialiser la séquence des réservations
+SELECT setval('reservation_reservation_id_seq', (SELECT MAX(reservation_id) FROM reservation));

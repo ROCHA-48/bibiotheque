@@ -12,6 +12,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     List<Reservation> findByStatus(ReservationStatus status);
     List<Reservation> findByUserId(Integer userId);
     List<Reservation> findByBookId(Integer bookId);
+    List<Reservation> findByBookIdAndStatus(Integer bookId, ReservationStatus status);
     List<Reservation> findByBookIdAndUserIdAndStatusIn(Integer bookId, Integer userId, List<ReservationStatus> statuses);
     long countByUserIdAndStatusIn(Integer userId, List<ReservationStatus> statuses);
+
+    void deleteByUserId(Integer userId);
 }

@@ -12,6 +12,8 @@ export class UpdateUserComponent implements OnInit {
 
   userId: number;
   user: Users = new Users();
+  selectedRoleName = 'User';
+
   constructor(private usersService: UsersService,
     private route: ActivatedRoute,
     private router: Router) { }
@@ -20,10 +22,12 @@ export class UpdateUserComponent implements OnInit {
     this.userId = this.route.snapshot.params['userId'];
     this.usersService.getUserById(this.userId).subscribe(data => {
       this.user = data;
+      this.selectedRoleName = data?.role?.[0]?.roleName ?? 'User';
     })
   }
 
   onSubmit() {
+    this.user.role = [{ roleName: this.selectedRoleName }];
     this.usersService.updateUser(this.userId, this.user).subscribe( data =>{
         this.goToUsersList();
     },

@@ -18,8 +18,8 @@
             <td>{{ b.returnDate || '—' }}</td>
             <td>{{ b.dueDate }}</td>
             <td class="text-end">
-              <button *ngIf="b.returnDate === null" (click)="returnBook(b.borrowId)" class="btn btn-sm btn-info">
-                <i class="bi bi-box-arrow-up me-1"></i> Retourner
+              <button *ngIf="b.returnDate === null" (click)="returnBook(b.borrowId)" class="btn btn-sm btn-info" title="Retourner">
+                <i class="bi bi-box-arrow-up"></i>
               </button>
               <span *ngIf="b.returnDate !== null" class="badge badge-success">Retourné</span>
             </td>

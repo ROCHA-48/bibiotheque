@@ -1,7 +1,6 @@
 <div class="page-section animate-in">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h2 class="mb-1">📚 Liste des livres</h2>
       <p class="text-muted mb-0" style="font-size: 0.9rem;">Gérez le catalogue de la bibliothèque</p>
     </div>
     <a routerLink="/create-book" class="btn btn-primary">
@@ -37,11 +36,11 @@
               <button (click)="bookDetails(book.bookId)" class="btn btn-sm btn-outline-primary me-1" title="Voir détails">
                 <i class="bi bi-eye"></i>
               </button>
-              <button (click)="updateBook(book.bookId)" class="btn btn-sm btn-outline-info me-1" title="Modifier">
-                <i class="bi bi-pencil"></i>
+              <button *ngIf="book.noOfCopies > 0" (click)="openBorrowForBook(book.bookId)" class="btn btn-sm btn-success me-1" title="Emprunter">
+                <i class="bi bi-box-arrow-down"></i>
               </button>
-              <button (click)="deleteBook(book.bookId)" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                <i class="bi bi-trash"></i>
+              <button *ngIf="book.noOfCopies <= 0" (click)="openReservationForBook(book.bookId)" class="btn btn-sm btn-outline-warning me-1" title="Réserver">
+                <i class="bi bi-calendar-plus"></i>
               </button>
             </td>
           </tr>

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Users } from '../_model/users';
 import { UsersService } from '../_service/users.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-registration',
@@ -11,18 +12,25 @@ import { UsersService } from '../_service/users.service';
 export class RegistrationComponent implements OnInit {
 
   user: Users = new Users();
+  selectedRoleName = 'User';
+
   constructor(private usersService: UsersService,
-    private router: Router) { }
+    private router: Router,
+    private toastService: ToastService
+  ) { }
 
   ngOnInit(): void {
   }
 
   saveUser() {
+    this.user.role = [{ roleName: this.selectedRoleName }];
     this.usersService.createUser(this.user).subscribe(data => {
-      console.log(data);
+      this.toastService.success('Utilisateur créé avec succès !');
       this.goToUsersList();
     },
-    error => console.log(error));
+    error => {
+      this.toastService.error('Erreur lors de la création de l\'utilisateur.');
+    });
   }
 
   goToUsersList() {

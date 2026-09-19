@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Books } from '../_model/books';
-import { Borrow } from '../_model/borrow';
 import { Users } from '../_model/users';
 import { BooksService } from '../_service/books.service';
-import { BorrowService } from '../_service/borrow.service';
 import { UsersService } from '../_service/users.service';
+import { BorrowService } from '../_service/borrow.service';
+import { Borrow } from '../_model/borrow';
+
+interface HistoryEntry extends Borrow {
+  borrowerName: string;
+}
 
 @Component({
   selector: 'app-book-details',
@@ -16,40 +20,102 @@ export class BookDetailsComponent implements OnInit {
 
   id: number;
   book: Books;
-  borrow: Borrow[];
+  borrowHistory: HistoryEntry[] = [];
   user: Users;
 
+  // Tri de l'historique
+  sortField = 'issueDate';
+  sortDirection: 'asc' | 'desc' = 'desc';
+
   constructor(private route: ActivatedRoute,
+    private router: Router,
     private bookService: BooksService,
-    private borrowService: BorrowService,
-    public userService: UsersService
+    public userService: UsersService,
+    private borrowService: BorrowService
   ) { }
 
   ngOnInit(): void {
     this.id = this.route.snapshot.params['bookId'];
-    // console.log(this.id);
     this.book = new Books();
-    this.bookService.getBookById(this.id).subscribe( data => {
+    this.bookService.getBookById(this.id).subscribe(data => {
       this.book = data;
-      console.log(data);
-    })
-
-    this.getBorrowHistory(this.id);
-    
-  }
-
-  private getBorrowHistory(bookId: number) {
-    this.borrowService.getBookBorrowHistory(bookId).subscribe(data => {
-      this.borrow = data;
-      console.log(data);
+      this.loadBorrowHistory();
     });
   }
 
-  public getUserData(userId: number):string {
-    this.user = new Users();
-    this.userService.getUserById(userId).subscribe( data => {
-      this.user = data;
-    })
-    return this.user.name;
+  /** Historique des emprunts de ce livre + noms des emprunteurs. */
+  private loadBorrowHistory(): void {
+    this.borrowService.getBookBorrowHistory(this.id).subscribe(borrows => {
+      const entries: HistoryEntry[] = (borrows || []).map(b => ({ ...b, borrowerName: '…' }));
+      this.borrowHistory = entries;
+
+      entries.forEach(entry => {
+        this.userService.getUserById(entry.userId).subscribe(user => {
+          entry.borrowerName = user?.name || user?.username || 'Inconnu';
+        });
+      });
+    });
+  }
+
+  /** Nombre d'emprunts non retournés. */
+  get activeBorrowsCount(): number {
+    return this.borrowHistory.filter(b => !b.returnDate).length;
+  }
+
+  // --- Tri ---
+  get sortedHistory(): HistoryEntry[] {
+    const data = [...this.borrowHistory];
+    const field = this.sortField as keyof HistoryEntry;
+    data.sort((a, b) => {
+      const valA = a[field] ?? '';
+      const valB = b[field] ?? '';
+      if (valA instanceof Date || typeof valA === 'string' && field.toLowerCase().includes('date')) {
+        return this.compare(new Date(valA as any).getTime(), new Date(valB as any).getTime());
+      }
+      return this.compare(valA, valB);
+    });
+    return this.sortDirection === 'asc' ? data : data.reverse();
+  }
+
+  private compare(a: any, b: any): number {
+    if (a === b) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return a > b ? 1 : -1;
+  }
+
+  toggleSort(field: string): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  getSortIcon(field: string): string {
+    if (this.sortField !== field) return '↕';
+    return this.sortDirection === 'asc' ? '↑' : '↓';
+  }
+
+  // --- Helpers d'affichage ---
+  isOverdue(entry: Borrow): boolean {
+    if (entry.returnDate || !entry.dueDate) return false;
+    return new Date(entry.dueDate).getTime() < Date.now();
+  }
+
+  formatDate(date: any): string {
+    if (!date) return '—';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return String(date);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  openBorrowBook(): void {
+    this.router.navigate(['borrow-book']);
+  }
+
+  openReservation(): void {
+    this.router.navigate(['reservations']);
   }
 }

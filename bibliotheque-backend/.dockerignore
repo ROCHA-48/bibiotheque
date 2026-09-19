@@ -1,0 +1,22 @@
+# Artifacts de build locaux (le jar est produit DANS l'image)
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Tests : exclus du build Docker (package -DskipTests)
+src/test/
+
+# Docker eux-mêmes
+Dockerfile
+.dockerignore
+
+# Divers
+*.log
+logs/

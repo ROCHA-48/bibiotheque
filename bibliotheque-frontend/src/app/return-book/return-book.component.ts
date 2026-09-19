@@ -5,6 +5,7 @@ import { Borrow } from '../_model/borrow';
 import { BooksService } from '../_service/books.service';
 import { BorrowService } from '../_service/borrow.service';
 import { UserAuthService } from '../_service/user-auth.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-return-book',
@@ -19,7 +20,8 @@ export class ReturnBookComponent implements OnInit {
   constructor(
     private borrowService: BorrowService,
     private booksService: BooksService,
-    private userAuthService: UserAuthService
+    private userAuthService: UserAuthService,
+    private toastService: ToastService
   ) { }
 
   userId = this.userAuthService.getUserId();
@@ -46,9 +48,12 @@ export class ReturnBookComponent implements OnInit {
   public returnBook(borrowId: number) {
     this.brw.borrowId = borrowId;
     this.borrowService.returnBook(this.brw).subscribe(data => {
-      console.log(data);
+      this.toastService.success('Livre retourné avec succès !');
+      this.getBooksByUser();
     },
-    error => console.log(error));
+    error => {
+      this.toastService.error('Erreur lors du retour du livre.');
+    });
   }
 
 }

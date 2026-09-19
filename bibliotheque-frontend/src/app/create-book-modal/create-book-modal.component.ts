@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { Books } from '../_model/books';
 import { BooksService } from '../_service/books.service';
 import { ModalService } from '../_service/modal.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-create-book-modal',
@@ -16,7 +17,8 @@ export class CreateBookModalComponent implements OnInit, OnDestroy {
 
   constructor(
     private booksService: BooksService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -39,11 +41,13 @@ export class CreateBookModalComponent implements OnInit, OnDestroy {
   onSubmit() {
     this.booksService.createBook(this.book).subscribe(
       (data) => {
-        console.log(data);
+        this.toastService.success('Livre créé avec succès !');
         this.close();
         window.location.reload();
       },
-      (error) => console.log(error)
+      (error) => {
+        this.toastService.error('Erreur lors de la création du livre.');
+      }
     );
   }
 

@@ -8,6 +8,8 @@ import com.ibizabroker.bibliotheque.entity.Reservation;
 import com.ibizabroker.bibliotheque.entity.ReservationStatus;
 import com.ibizabroker.bibliotheque.entity.Users;
 import com.ibizabroker.bibliotheque.exceptions.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ import java.util.*;
 
 @Service
 public class ReservationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
     @Autowired
     private ReservationRepository reservationRepository;
@@ -39,6 +43,11 @@ public class ReservationService {
         return user.map(Users::getUserId).orElse(null);
     }
 
+    public String currentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null ? auth.getName() : "anonyme";
+    }
+
     public boolean hasRole(String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
@@ -46,6 +55,16 @@ public class ReservationService {
         }
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+    }
+
+    /** L'Admin et le Bibliothécaire ont tous les droits sur les réservations. */
+    public boolean hasFullAccess() {
+        return hasRole("BIBLIOTHECAIRE") || hasRole("Admin");
+    }
+
+    /** Rôle legacy « User » (page d'inscription par défaut) = droits adhérent. */
+    public boolean isAdherent() {
+        return hasRole("ADHERENT") || hasRole("User");
     }
 
     public boolean isOwner(Integer reservationId) {
@@ -62,7 +81,7 @@ public class ReservationService {
             List<Reservation> reservations;
             Integer currentUserId = getCurrentUserId();
 
-            if (hasRole("BIBLIOTHECAIRE")) {
+            if (hasFullAccess()) {
                 if (status != null && !status.isEmpty()) {
                     ReservationStatus reservationStatus = ReservationStatus.valueOf(status);
                     reservations = reservationRepository.findByStatus(reservationStatus);
@@ -89,7 +108,9 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("La réservation demandée n'existe pas."));
 
-        if (hasRole("ADHERENT") && !hasRole("BIBLIOTHECAIRE") && !isOwner(id)) {
+        if (isAdherent() && !hasFullAccess() && !isOwner(id)) {
+            logger.warn("Accès refusé (RS-03) : '{}' a tenté de consulter la réservation {} d'un autre adhérent.",
+                    currentUsername(), id);
             throw new SecurityException("Accès interdit : cette réservation ne vous appartient pas.");
         }
 
@@ -97,6 +118,25 @@ public class ReservationService {
     }
 
     public ResponseEntity<?> createReservation(Reservation reservation) {
+        // Livre absent du catalogue : le titre saisi fait foi, on crée le livre (0 exemplaire)
+        if (reservation.getBookId() == null
+                && reservation.getNewBookTitle() != null
+                && !reservation.getNewBookTitle().trim().isEmpty()) {
+            String title = reservation.getNewBookTitle().trim();
+            Books existing = booksRepository.findByBookNameIgnoreCase(title).orElse(null);
+            if (existing != null) {
+                reservation.setBookId(existing.getBookId());
+            } else {
+                Books created = new Books();
+                created.setBookName(title);
+                created.setNoOfCopies(0);
+                Books savedBook = booksRepository.save(created);
+                logger.info("Nouveau livre '{}' créé automatiquement (id={}) suite à une réservation de '{}'.",
+                        title, savedBook.getBookId(), currentUsername());
+                reservation.setBookId(savedBook.getBookId());
+            }
+        }
+
         if (reservation.getBookId() == null) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "Le champ livre est obligatoire.");
@@ -110,7 +150,11 @@ public class ReservationService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
 
-        if (hasRole("ADHERENT") && !hasRole("BIBLIOTHECAIRE")) {
+        if (isAdherent() && !hasFullAccess()) {
+            if (reservation.getUserId() != null && !reservation.getUserId().equals(currentUserId)) {
+                logger.warn("Accès refusé (RS-04) : '{}' a tenté de créer une réservation au nom de l'adhérent {} ; identité du token imposée ({}).",
+                        currentUsername(), reservation.getUserId(), currentUserId);
+            }
             reservation.setUserId(currentUserId);
         } else if (reservation.getUserId() == null) {
             Map<String, String> error = new HashMap<>();
@@ -124,6 +168,11 @@ public class ReservationService {
             error.put("message", "Le livre demandé n'existe pas.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
+
+        boolean newlyCreatedBook = book.getBookName() != null
+                && book.getNoOfCopies() == 0
+                && reservation.getNewBookTitle() != null
+                && book.getBookName().equalsIgnoreCase(reservation.getNewBookTitle().trim());
 
         Users user = usersRepository.findById(reservation.getUserId()).orElse(null);
         if (user == null) {
@@ -159,7 +208,8 @@ public class ReservationService {
 
         Calendar c = Calendar.getInstance();
         c.setTime(new Date());
-        c.add(Calendar.DATE, 7);
+        // Un livre à acquérir par la bibliothèque demande plus de temps qu'une simple attente de retour.
+        c.add(Calendar.DATE, newlyCreatedBook ? 30 : 7);
         reservation.setExpirationDate(c.getTime());
 
         Reservation saved = reservationRepository.save(reservation);
@@ -175,10 +225,12 @@ public class ReservationService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
 
-        if (hasRole("ADHERENT") && !hasRole("BIBLIOTHECAIRE")) {
+        if (isAdherent() && !hasFullAccess()) {
             Integer currentUserId = getCurrentUserId();
             Map<String, String> error = new HashMap<>();
             if (currentUserId == null || !currentUserId.equals(reservation.getUserId())) {
+                logger.warn("Accès refusé (RS-03) : '{}' a tenté d'annuler la réservation {} d'un autre adhérent.",
+                        currentUsername(), id);
                 error.put("message", "Accès interdit : cette réservation ne vous appartient pas.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
             }
@@ -206,5 +258,34 @@ public class ReservationService {
 
         reservationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Notifie les réservations EN_ATTENTE d'un livre dès que la bibliothèque en
+     * possède au moins un exemplaire : le statut passe à DISPONIBLE.
+     * Appelé à l'acquisition d'un livre (création / ajout d'exemplaires) et au
+     * retour d'un emprunt.
+     */
+    public void notifyBookAcquired(Integer bookId) {
+        if (bookId == null) {
+            return;
+        }
+        Books book = booksRepository.findById(bookId).orElse(null);
+        if (book == null || book.getNoOfCopies() == null || book.getNoOfCopies() <= 0) {
+            return;
+        }
+
+        List<Reservation> waiting = reservationRepository.findByBookIdAndStatus(bookId, ReservationStatus.EN_ATTENTE);
+        if (waiting.isEmpty()) {
+            return;
+        }
+
+        for (Reservation reservation : waiting) {
+            reservation.setStatus(ReservationStatus.DISPONIBLE);
+            reservationRepository.save(reservation);
+            Users user = usersRepository.findById(reservation.getUserId()).orElse(null);
+            logger.info("Notification : le livre '{}' est disponible pour '{}' (réservation {}).",
+                    book.getBookName(), user != null ? user.getUsername() : "?", reservation.getReservationId());
+        }
     }
 }

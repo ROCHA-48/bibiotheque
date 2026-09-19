@@ -96,8 +96,108 @@ class ReservationSecurityIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", roles = {"Admin"})
+    void shouldReturn200WhenAdminListsAllReservations() throws Exception {
+        doReturn(ResponseEntity.ok(Collections.emptyList()))
+                .when(reservationService).getAllReservations(isNull());
+
+        mockMvc.perform(get("/api/reservations"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"Admin"})
+    void shouldReturn204WhenAdminDeletesReservation() throws Exception {
+        doReturn(ResponseEntity.noContent().build())
+                .when(reservationService).deleteReservation(1);
+
+        mockMvc.perform(delete("/api/reservations/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"Admin"})
+    void shouldReturn200WhenAdminReadsAnyReservation() throws Exception {
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(9106);
+        reservation.setUserId(5);
+
+        doReturn(reservation).when(reservationService).getReservation(9106);
+
+        mockMvc.perform(get("/api/reservations/9106"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void shouldReturn401WhenBibliothecaireWithoutTokenTriesToDeleteReservation() throws Exception {
         mockMvc.perform(delete("/api/reservations/1"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // --- RS-01 : anonyme refusé sur TOUS les endpoints ---
+
+    @Test
+    void shouldReturn401WhenAnonymousCreatesReservation_RS01() throws Exception {
+        mockMvc.perform(post("/api/reservations")
+                        .contentType("application/json")
+                        .content("{\"bookId\":1}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturn401WhenAnonymousCancelsReservation_RS01() throws Exception {
+        mockMvc.perform(patch("/api/reservations/1/annuler"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturn401WhenAnonymousListsUsersForReservations_RS01() throws Exception {
+        mockMvc.perform(get("/api/reservations/users"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // --- RS-02 : l'adhérent ne peut pas agir comme un bibliothécaire ---
+
+    @Test
+    @WithMockUser(username = "adherent1", roles = {"ADHERENT"})
+    void shouldReturn403WhenAdherentDeletesReservation_RS02() throws Exception {
+        mockMvc.perform(delete("/api/reservations/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "adherent1", roles = {"ADHERENT"})
+    void shouldReturn403WhenAdherentListsUsersForReservations_RS02() throws Exception {
+        mockMvc.perform(get("/api/reservations/users"))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- Les rôles legacy « User » / « Admin » gardent l'accès (compatibilité) ---
+
+    @Test
+    @WithMockUser(username = "classic", roles = {"User"})
+    void shouldReturn200WhenLegacyUserListsReservations() throws Exception {
+        doReturn(ResponseEntity.ok(Collections.emptyList()))
+                .when(reservationService).getAllReservations(isNull());
+
+        mockMvc.perform(get("/api/reservations"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "biblio1", roles = {"BIBLIOTHECAIRE"})
+    void shouldReturn200WhenBibliothecaireCreatesReservation() throws Exception {
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(3);
+        reservation.setBookId(1);
+        reservation.setUserId(2);
+
+        doReturn(ResponseEntity.status(201).body(reservation))
+                .when(reservationService).createReservation(any(Reservation.class));
+
+        mockMvc.perform(post("/api/reservations")
+                        .contentType("application/json")
+                        .content("{\"bookId\":1,\"userId\":2}"))
+                .andExpect(status().isCreated());
     }
 }

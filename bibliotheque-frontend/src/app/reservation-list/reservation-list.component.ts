@@ -3,6 +3,8 @@ import { Books } from '../_model/books';
 import { Users } from '../_model/users';
 import { Reservation } from '../_model/reservation';
 import { ReservationService } from '../_service/reservation.service';
+import { UserAuthService } from '../_service/user-auth.service';
+import { ToastService } from '../_service/toast.service';
 
 @Component({
   selector: 'app-reservation-list',
@@ -18,10 +20,10 @@ export class ReservationListComponent implements OnInit {
   @Input() errorMessage = '';
 
   @Output() reservationCancelled = new EventEmitter<void>();
-  @Output() filterChange = new EventEmitter<string>();
 
   selectedStatus = 'TOUS';
   cancelError = '';
+  retryStatus = 'TOUS';
 
   // Pagination
   currentPage = 1;
@@ -32,7 +34,11 @@ export class ReservationListComponent implements OnInit {
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
-  constructor(private reservationService: ReservationService) { }
+  constructor(
+    private reservationService: ReservationService,
+    private userAuthService: UserAuthService,
+    private toastService: ToastService
+  ) { }
 
   ngOnInit(): void { }
 
@@ -92,18 +98,24 @@ export class ReservationListComponent implements OnInit {
   onFilterChange(status: string): void {
     this.selectedStatus = status;
     this.currentPage = 1;
-    this.filterChange.emit(status);
   }
 
   // --- Helpers ---
-  getBookName(bookId: number): string {
+  getBookName(bookId: number | null): string {
     const book = this.books.find(b => b.bookId === bookId);
     return book ? book.bookName : 'Inconnu';
   }
 
-  getUserName(userId: number): string {
+  getUserName(userId: number | null): string {
+    if (userId == null) return 'Inconnu';
     const user = this.users.find(u => u.userId === userId);
-    return user ? user.name : 'Inconnu';
+    if (user) return user.name;
+    // Liste des adhérents non chargée (session ADHERENT) : repli sur l'identité de session.
+    if (userId === this.userAuthService.getUserId()) {
+      const sessionName = this.userAuthService.getName();
+      return sessionName || 'Vous';
+    }
+    return 'Inconnu';
   }
 
   canCancel(status: string): boolean {
@@ -117,9 +129,11 @@ export class ReservationListComponent implements OnInit {
 
     this.reservationService.annulerReservation(reservationId).subscribe({
       next: (data) => {
+        this.toastService.success('Réservation annulée avec succès.');
         this.reservationCancelled.emit();
       },
       error: (err) => {
+        this.toastService.error('Erreur lors de l\'annulation.');
         this.cancelError = err;
       }
     });

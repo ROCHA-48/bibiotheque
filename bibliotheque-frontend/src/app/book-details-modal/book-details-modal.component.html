@@ -1,0 +1,79 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="details-modal">
+    <button class="modal-close-btn" (click)="close()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="modal-header-custom">
+      <div class="modal-icon">
+        <i class="bi bi-book"></i>
+      </div>
+      <h2>{{ book?.bookName }}</h2>
+      <p>{{ book?.bookAuthor || 'Auteur inconnu' }}</p>
+      <div class="d-flex gap-2 justify-content-center mt-2">
+        <span class="badge bg-info text-dark" *ngIf="book?.bookGenre">{{ book.bookGenre }}</span>
+        <span class="copies-badge" [class.copies-low]="book.noOfCopies <= 2">
+          {{ book.noOfCopies }} exemplaire{{ book.noOfCopies > 1 ? 's' : '' }}
+        </span>
+      </div>
+    </div>
+
+    <table class="table table-sm mb-3 details-table">
+      <tbody>
+        <tr>
+          <th class="w-25"><i class="bi bi-tag me-2 text-muted"></i>Genre</th>
+          <td>{{ book?.bookGenre || '—' }}</td>
+        </tr>
+        <tr *ngIf="book">
+          <th><i class="bi bi-box me-2 text-muted"></i>Exemplaires</th>
+          <td>
+            <span class="copies-badge" [class.copies-low]="book.noOfCopies <= 2">{{ book.noOfCopies }}</span>
+            <span class="text-muted ms-2" *ngIf="book.noOfCopies <= 0">indisponible — réservez-le</span>
+          </td>
+        </tr>
+        <tr>
+          <th><i class="bi bi-arrow-left-right me-2 text-muted"></i>Emprunts en cours</th>
+          <td>
+            <span class="badge" style="background: var(--primary-light, rgba(79,70,229,.1)); color: var(--primary, #4f46e5);">
+              {{ activeBorrowsCount }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4 class="history-title"><i class="bi bi-clock-history me-2"></i>Historique des emprunts</h4>
+
+    <div class="table-responsive" *ngIf="borrowHistory.length > 0">
+      <table class="table table-hover mb-0 history-table">
+        <thead>
+          <tr>
+            <th (click)="toggleSort('borrowerName')" style="cursor: pointer;">Emprunteur {{ getSortIcon('borrowerName') }}</th>
+            <th (click)="toggleSort('issueDate')" style="cursor: pointer;">Emprunté le {{ getSortIcon('issueDate') }}</th>
+            <th (click)="toggleSort('dueDate')" style="cursor: pointer;">À rendre le {{ getSortIcon('dueDate') }}</th>
+            <th (click)="toggleSort('returnDate')" style="cursor: pointer;">Retour {{ getSortIcon('returnDate') }}</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of sortedHistory">
+            <td><strong>{{ entry.borrowerName }}</strong></td>
+            <td>{{ formatDate(entry.issueDate) }}</td>
+            <td [class.text-danger]="isOverdue(entry)">{{ formatDate(entry.dueDate) }}</td>
+            <td>{{ formatDate(entry.returnDate) }}</td>
+            <td>
+              <span *ngIf="entry.returnDate" class="badge bg-success">Retourné</span>
+              <span *ngIf="!entry.returnDate && isOverdue(entry)" class="badge bg-danger">En retard</span>
+              <span *ngIf="!entry.returnDate && !isOverdue(entry)" class="badge bg-warning text-dark">En cours</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="borrowHistory.length === 0" class="text-center py-4 text-muted">
+      <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.4;"></i>
+      <p class="mt-2 mb-0">Ce livre n'a jamais été emprunté</p>
+    </div>
+  </div>
+</div>

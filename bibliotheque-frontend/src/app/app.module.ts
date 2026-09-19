@@ -8,6 +8,7 @@ import { CreateBookComponent } from './create-book/create-book.component';
 import { FormsModule } from '@angular/forms';
 import { UpdateBookComponent } from './update-book/update-book.component';
 import { BookDetailsComponent } from './book-details/book-details.component';
+import { BookDetailsModalComponent } from './book-details-modal/book-details-modal.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { UsersListComponent } from './users-list/users-list.component';
 import { UserDetailsComponent } from './user-details/user-details.component';
@@ -36,7 +37,11 @@ import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 import { LoginModalComponent } from './login-modal/login-modal.component';
 import { CreateBookModalComponent } from './create-book-modal/create-book-modal.component';
 import { RegisterModalComponent } from './register-modal/register-modal.component';
+import { ToastComponent } from './toast/toast.component';
+import { ToastService } from './_service/toast.service';
 import { ModalService } from './_service/modal.service';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -45,6 +50,7 @@ import { ModalService } from './_service/modal.service';
     CreateBookComponent,
     UpdateBookComponent,
     BookDetailsComponent,
+    BookDetailsModalComponent,
     RegistrationComponent,
     UsersListComponent,
     UserDetailsComponent,
@@ -66,13 +72,16 @@ import { ModalService } from './_service/modal.service';
     LoginModalComponent,
     CreateBookModalComponent,
     RegisterModalComponent,
+    ToastComponent,
+    DashboardComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    NgChartsModule
   ],
   providers: [
     AuthGuard,
@@ -84,7 +93,8 @@ import { ModalService } from './_service/modal.service';
     UsersService,
     BooksService,
     ReservationService,
-    ModalService
+    ModalService,
+    ToastService
    ],
   bootstrap: [AppComponent]
 })

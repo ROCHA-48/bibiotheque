@@ -6,6 +6,7 @@ import com.ibizabroker.bibliotheque.dao.UsersRepository;
 import com.ibizabroker.bibliotheque.entity.Books;
 import com.ibizabroker.bibliotheque.entity.Borrow;
 import com.ibizabroker.bibliotheque.entity.Users;
+import com.ibizabroker.bibliotheque.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,9 @@ public class BorrowController {
 
     @Autowired
     private BooksRepository booksRepository;
+
+    @Autowired
+    private ReservationService reservationService;
 
     @PostMapping
     public String borrowBook(@RequestBody Borrow borrow) {
@@ -64,6 +68,9 @@ public class BorrowController {
 
         book.returnBook();
         booksRepository.save(book);
+
+        // Le retour rend un exemplaire : les réservations EN_ATTENTE passent à DISPONIBLE.
+        reservationService.notifyBookAcquired(book.getBookId());
 
         Date currentDate = new Date();
         borrowBook.setReturnDate(currentDate);

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { Books } from '../_model/books';
 
 export interface ConfirmModalData {
   title: string;
@@ -19,12 +20,14 @@ export class ModalService {
   private registerModalSubject = new Subject<boolean>();
   private confirmModalSubject = new Subject<ConfirmModalData | null>();
   private confirmResultSubject = new Subject<boolean>();
+  private bookDetailsModalSubject = new Subject<Books | null>();
 
   loginModal$ = this.loginModalSubject.asObservable();
   createBookModal$ = this.createBookModalSubject.asObservable();
   registerModal$ = this.registerModalSubject.asObservable();
   confirmModal$ = this.confirmModalSubject.asObservable();
   confirmResult$ = this.confirmResultSubject.asObservable();
+  bookDetailsModal$ = this.bookDetailsModalSubject.asObservable();
 
   openLoginModal() {
     this.loginModalSubject.next(true);
@@ -48,6 +51,14 @@ export class ModalService {
 
   closeRegisterModal() {
     this.registerModalSubject.next(false);
+  }
+
+  openBookDetailsModal(book: Books) {
+    this.bookDetailsModalSubject.next(book);
+  }
+
+  closeBookDetailsModal() {
+    this.bookDetailsModalSubject.next(null);
   }
 
   confirm(data: ConfirmModalData): Promise<boolean> {

@@ -23,6 +23,11 @@
     <div class="nav-section" *ngIf="isAdmin()">
       <span class="nav-section-title" *ngIf="!isCollapsed">Administration</span>
 
+      <a routerLink="/dashboard" class="nav-item" [class.active]="isActive('/dashboard')" title="Tableau de bord">
+        <i class="bi bi-speedometer2"></i>
+        <span *ngIf="!isCollapsed">Tableau de bord</span>
+      </a>
+
       <a routerLink="/books" class="nav-item" [class.active]="isActive('/books')" title="Livres">
         <i class="bi bi-book"></i>
         <span *ngIf="!isCollapsed">Livres</span>
@@ -41,6 +46,26 @@
       <a class="nav-item clickable" (click)="openRegisterModal()" title="Ajouter un utilisateur">
         <i class="bi bi-person-plus"></i>
         <span *ngIf="!isCollapsed">Ajouter un utilisateur</span>
+      </a>
+
+      <a routerLink="/borrow-book" class="nav-item" [class.active]="isActive('/borrow-book')" title="Emprunts">
+        <i class="bi bi-arrow-left-right"></i>
+        <span *ngIf="!isCollapsed">Emprunts</span>
+      </a>
+
+      <a routerLink="/reservations" class="nav-item" [class.active]="isActive('/reservations')" title="Réservations">
+        <i class="bi bi-calendar-check"></i>
+        <span *ngIf="!isCollapsed">Réservations</span>
+      </a>
+    </div>
+
+    <!-- Section: Bibliothécaire -->
+    <div class="nav-section" *ngIf="isBibliothecaire()">
+      <span class="nav-section-title" *ngIf="!isCollapsed">Réservations</span>
+
+      <a routerLink="/reservations" class="nav-item" [class.active]="isActive('/reservations')" title="Réservations">
+        <i class="bi bi-calendar-check"></i>
+        <span *ngIf="!isCollapsed">Réservations</span>
       </a>
     </div>
 
@@ -72,7 +97,7 @@
       </div>
       <div class="user-details" *ngIf="!isCollapsed">
         <span class="user-name">{{ getUserName() }}</span>
-        <span class="user-role">{{ isAdmin() ? 'Administrateur' : 'Membre' }}</span>
+        <span class="user-role">{{ isAdmin() ? 'Administrateur' : (isBibliothecaire() ? 'Bibliothécaire' : 'Membre') }}</span>
       </div>
     </div>
 

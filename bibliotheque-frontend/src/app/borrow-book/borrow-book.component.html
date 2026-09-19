@@ -1,4 +1,13 @@
 <div class="page-section animate-in">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <p class="text-muted mb-0" style="font-size: 0.9rem;">Ceci crée un emprunt, pas une réservation.</p>
+    </div>
+    <a routerLink="/books" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Retour
+    </a>
+  </div>
+
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0">
@@ -9,28 +18,29 @@
             <th>Auteur</th>
             <th>Genre</th>
             <th>Exemplaires</th>
-            <th class="text-end">Actions</th>
+            <th class="text-end">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let book of books">
+          <tr *ngFor="let book of availableBooks">
             <td><span class="badge" style="background: var(--primary-light); color: var(--primary);">{{ book.bookId }}</span></td>
             <td><strong>{{ book.bookName }}</strong></td>
             <td>{{ book.bookAuthor }}</td>
             <td><span class="badge" style="background: #f0fdf4; color: #16a34a;">{{ book.bookGenre }}</span></td>
             <td>{{ book.noOfCopies }}</td>
             <td class="text-end">
-              <button (click)="borrowBook(book.bookId)" class="btn btn-sm btn-success">
-                <i class="bi bi-box-arrow-down me-1"></i> Emprunter
+              <button *ngIf="book.noOfCopies > 0" (click)="borrowBook(book.bookId)" class="btn btn-sm btn-success" title="Emprunter">
+                <i class="bi bi-box-arrow-down"></i>
               </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div *ngIf="books?.length === 0" class="text-center py-5 text-muted">
+    <div *ngIf="availableBooks?.length === 0" class="text-center py-5 text-muted">
       <i class="bi bi-inbox" style="font-size: 2.5rem; opacity: 0.4;"></i>
-      <p class="mt-2 mb-0">Aucun livre disponible</p>
+      <p class="mt-2 mb-0">Aucun livre disponible à l'emprunt pour le moment</p>
+      <p class="mb-0" style="font-size: 0.85rem;">Les livres indisponibles (0 exemplaire) n'apparaissent pas ici — utilisez les réservations.</p>
     </div>
   </div>
 </div>
